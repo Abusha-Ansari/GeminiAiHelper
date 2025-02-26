@@ -1,60 +1,61 @@
-// Use ES Module (ESM) syntax for browser compatibility
 import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai";
-import { apiKey } from "./apiKey.js";
 
-const api = apiKey;
-const genAI = new GoogleGenerativeAI(api);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+let api;
+let genAI;
+let model;
+
+async function fetchApiKey() {
+  try {
+    const response = await fetch('https://gemini-api-chi.vercel.app/api_gemini');
+    const data = await response.json();
+    api = data.apiKey;
+
+    if (!api) throw new Error("API Key is missing");
+
+    // Initialize GoogleGenerativeAI after fetching API key
+    genAI = new GoogleGenerativeAI(api);
+    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  } catch (error) {
+    console.error("Error fetching API key:", error);
+  }
+}
+
+fetchApiKey();
 
 const systemPrompt = `
-Remember that you are a software engineer proficient in JavaScript and Python. 
-When the user asks to generate any code, you can generate it in any language. 
-If the user mentions it explicitly, generate the code in that language. 
-Otherwise, generate code in either JavaScript or Python.
-
-Your response should be a **valid JSON object** with two attributes:
-1️⃣ **question** - The user prompt.
-2️⃣ **answer** - The generated code in JavaScript and/or Python or any other language user asked for.
-
-If you cannot generate code, return an error message.
-
-⚠️ **IMPORTANT**: Do NOT include extra explanations, only return the JSON object.
+You are a software engineer proficient in JavaScript and Python.
+Generate code in the requested language, or default to JavaScript or Python.
+Respond only with clean code, without explanations or JSON formatting.
 `;
 
 const genAICall = async (userPrompt) => {
+  if (!model) {
+    return "❌ Error: Model not initialized. Try again later.";
+  }
+
   try {
-    const prompt = `${systemPrompt}\nHere is the user prompt: ${userPrompt}`;
+    const prompt = `${systemPrompt}\nUser Prompt: ${userPrompt}`;
 
-    const result = await model.generateContent(prompt);
-    let textResponse = result.response.candidates[0].content.parts[0].text;
+    const result = await model.generateContent({
+      contents: [{ parts: [{ text: prompt }] }]
+    });
 
-    textResponse = textResponse.replace(/^```[a-zA-Z]*\s*|```$/g, "").trim();
-
-    const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error("No valid JSON found in response.");
+    // Extract AI response
+    let textResponse = result.response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    
+    if (!textResponse) {
+      throw new Error("Empty response from AI.");
     }
 
-    const data = JSON.parse(jsonMatch[0]);
+    // Remove unnecessary JSON or markdown formatting
+    textResponse = textResponse.replace(/^```[a-zA-Z]*\s*|```|```$/g, "").trim();
 
-    let answer = "❌ Error: Could not generate code for the user prompt";
-
-    if (data.answer) {
-      if (typeof data.answer === "string") {
-        answer = data.answer;
-      } else if (data.answer.python && Array.isArray(data.answer.python) && data.answer.python.length > 0) {
-        answer = data.answer.python[0].content || answer;
-      }
-    }
-
-    return answer.replace(/^```[a-zA-Z]*\s*|```$/g, "").trim();
+    return textResponse;
   } catch (error) {
+    console.error("API Call Error:", error);
     return `❌ Error: ${error.message}`;
   }
 };
-
-
-
 
 document.getElementById("generate").onclick = async () => {
   const userPrompt = document.getElementById("prompInput").value;
@@ -64,13 +65,9 @@ document.getElementById("generate").onclick = async () => {
 
   try {
     const response = await genAICall(userPrompt);
-    
-    if (typeof response === "string") {
-      resElement.textContent = response; 
-    } else {
-      resElement.textContent = JSON.stringify(response, null, 2); 
-    }
+    resElement.textContent = response;
   } catch (error) {
     resElement.textContent = `❌ Error: ${error.message}`;
   }
 };
+
