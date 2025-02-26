@@ -1,0 +1,78 @@
+/* General body styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+/* Heading styling */
+h1 {
+    color: #444;
+    margin-bottom: 20px;
+}
+
+/* Paragraph styling */
+p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+/* Strong text within paragraph */
+p strong {
+    color: #007BFF;
+}
+
+/* Input box styling */
+textarea {
+    width: 80%; /* Responsive width */
+    max-width: 600px;
+    min-width: 300px;
+    height: 150px; /* Increased height */
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    resize: vertical; /* Allows resizing only vertically */
+    overflow-wrap: break-word; /* Wrap text properly */
+    word-wrap: break-word;
+    white-space: pre-wrap; /* Ensures text wraps inside */
+    margin-bottom: 20px;
+}
+
+
+
+/* Button styling */
+button {
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Preformatted text styling for the response */
+pre {
+    background-color: #eee;
+    padding: 20px;
+    border-radius: 5px;
+    width: 80%;
+    max-width: 600px;
+    overflow-x: auto;
+    margin-top: 20px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 14px;
+}
